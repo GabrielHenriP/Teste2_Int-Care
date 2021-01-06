@@ -104,7 +104,6 @@ function saveCsvFiles(tables,dir){
                     await csv.toDisk(`${dir}/Quadro_${numberTable}.csv`);
                 })().then( () => {
                     count++
-                    console.log(count)
                     if(count == 3){
                         zipFolder();
                     }
