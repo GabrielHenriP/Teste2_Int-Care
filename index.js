@@ -2,6 +2,8 @@ import fs from 'fs';
 import pdf from 'pdf-parse';
 import ObjectsToCsv from 'objects-to-csv';
 import AdmZip from 'adm-zip';
+
+const zip = new AdmZip();
  
 let dataBuffer = fs.readFileSync('Padrao_TISS_Componente_Organizacional__202012.pdf');
 
@@ -74,23 +76,55 @@ pdf(dataBuffer).then( data => {
             }
             return data
         })
-    
-    // array tables recebe 3 arrays de objetos, cada um representando uma tabela do PDF
-    const tables = [arrayTable_1, arrayTable_2, arrayTable_3]
-    
-    // salvando cada array dentro de tables como arquvivos csv
-    let  numberTable = 30
-    tables.map( table => {
-        (async () => {
-            const csv = new ObjectsToCsv(table);
-            await csv.toDisk(`./Teste_Intuitive_Care_Gabriel/Quadro_${numberTable}.csv`);
-          })();
-          numberTable++;
-    })
 
-    // zipando a pasta que contém os arquivos csv
-    const zip = new AdmZip();
-    zip.addLocalFolder(__dirname+'/Teste_Intuitive_Care_Gabriel')  
-    zip.writeZip(__dirname+'/Teste_Intuitive_Care_Gabriel.zip')
+    // array tables recebe 3 arrays de objetos, cada um representando uma tabela do PDF
+    const tables = [arrayTable_1, arrayTable_2, arrayTable_3];
+    const dir = './Teste_Intuitive_Care_Gabriel';
+    fs.mkdir(dir, (err) => {
+        console.log("Directory is created.");
+        saveCsvFiles(tables,dir);
+    })
+    
 
 })
+
+function saveCsvFiles(tables,dir){
+    
+    fs.access(dir, function(error) {
+        if (error) {
+            console.log('directory does not exists')
+        } else {
+            // salvando cada array dentro de tables como arquivos csv
+            let  numberTable = 30
+            let count = 0
+            tables.map( table => {
+                
+                (async () => {
+                    const csv = new ObjectsToCsv(table);
+                    await csv.toDisk(`${dir}/Quadro_${numberTable}.csv`);
+                })().then( () => {
+                    count++
+                    console.log(count)
+                    if(count == 3){
+                        zipFolder();
+                    }
+                       
+                });
+                numberTable++;
+            })
+            
+            
+        }
+        
+    })
+
+    
+}
+
+function zipFolder(){
+    // zipando a pasta que contém os arquivos csv
+    zip.addLocalFolder(__dirname+'/Teste_Intuitive_Care_Gabriel')  
+    zip.writeZip(__dirname+'/Teste_Intuitive_Care_Gabriel.zip')
+}
+
+
