@@ -54,7 +54,6 @@ function getIndexes(arrayLinesFromPdf){
 
 function separateTables(arrayLinesFromPdf,indexesToSliceObject){
     // tratanto cada linha e guardando em forma de objeto
-    
     const arrayTable_1 = arrayLinesFromPdf
         .slice(indexesToSliceObject.indexesTable1[0]+4, indexesToSliceObject.indexesTable1[1]+1)
         .map( phrase => {
@@ -111,34 +110,26 @@ function separateTables(arrayLinesFromPdf,indexesToSliceObject){
 }
 
 function saveCsvFiles(tables,dir){
-    fs.access(dir, function(error) {
-        if (error) {
-            console.log('directory does not exists')
-        } else {
-            // salvando cada array dentro de tables como arquivos csv
-            let  numberTable = 30
-            let count = 0
-            tables.map( table => {
-                
-                (async () => {
-                    const csv = new ObjectsToCsv(table);
-                    await csv.toDisk('./'+dir+`/Quadro_${numberTable}.csv`);
-                })().then( () => {
-                    count++
-                    if(count == 3){
-                        zipFolder(dir);
-                    }
-                       
-                });
-                numberTable++;
-            })
+    let  numberTable = 30
+    let count = 0
+    tables.map( table => {
+        objToCsv(table, numberTable,dir)
+            .then(() => {
+                console.log()
+                count++
+                if(count == 3){
+                    zipFolder(dir);
+                }
+            });
+        numberTable++;
+    });
             
-            
-        }
-        
-    })
+}
 
-    
+async function objToCsv(table,numberTable,dir){
+    // transformando as tables em arquivos csv e salvando na pasta dir
+    const csv = new ObjectsToCsv(table);
+    await csv.toDisk('./'+dir+`/Quadro_${numberTable}.csv`);
 }
 
 function zipFolder(dir){
